@@ -1,106 +1,196 @@
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
+// Interface for bank account
+interface BankAccount {
+    String getAccountNumber();
+    double getBalance();
+    void withdraw(double amount);
+    void deposit(double amount);
+}
 
-    // Account class represents a bank account
-    class Account {
-        private String accountNumber;
-        private String pin;
-        private double balance;
+// CurrentAccount class represents a current bank account
+class CurrentAccount implements BankAccount {
+    private String accountNumber;
+    private double balance;
 
-        public Account(String accountNumber, String pin, double balance) {
-            this.accountNumber = accountNumber;
-            this.pin = pin;
-            this.balance = balance;
-        }
+    public CurrentAccount(String accountNumber, double balance) {
+        this.accountNumber = accountNumber;
+        this.balance = balance;
+    }
 
-        public String getAccountNumber() {
-            return accountNumber;
-        }
+    @Override
+    public String getAccountNumber() {
+        return accountNumber;
+    }
 
-        public boolean validatePin(String pin) {
-            return this.pin.equals(pin);
-        }
+    @Override
+    public double getBalance() {
+        return balance;
+    }
 
-        public double getBalance() {
-            return balance;
-        }
-
-        public void withdraw(double amount) {
-            if (amount > 0 && balance >= amount) {
-                balance -= amount;
-                System.out.println("Withdrawal successful. Current balance: " + balance);
-            } else {
-                System.out.println("Invalid amount or insufficient funds.");
-            }
-        }
-
-        public void deposit(double amount) {
-            if (amount > 0) {
-                balance += amount;
-                System.out.println("Deposit successful. Current balance: " + balance);
-            } else {
-                System.out.println("Invalid amount.");
-            }
+    @Override
+    public void withdraw(double amount) {
+        if (amount > 0 && balance >= amount) {
+            balance -= amount;
+            System.out.println("Withdrawal successful. Current balance: " + balance);
+        } else {
+            System.out.println("Invalid amount or insufficient funds.");
         }
     }
 
-    // ATM class represents the ATM machine
-    class ATM {
-        private Account account;
-
-        public ATM(Account account) {
-            this.account = account;
+    @Override
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("Deposit successful. Current balance: " + balance);
+        } else {
+            System.out.println("Invalid amount.");
         }
+    }
+}
 
-        public void displayMenu() {
-            System.out.println("ATM Menu:");
-            System.out.println("1. Check Balance");
-            System.out.println("2. Withdraw");
-            System.out.println("3. Deposit");
-            System.out.println("4. Exit");
-        }
+// SavingsAccount class represents a savings bank account
+class SavingsAccount implements BankAccount {
+    private String accountNumber;
+    private double balance;
 
-        public void performTransaction(int choice, Scanner scanner) {
-            switch (choice) {
-                case 1:
-                    System.out.println("Current Balance: " + account.getBalance());
-                    break;
-                case 2:
-                    System.out.print("Enter amount to withdraw: ");
-                    double withdrawAmount = scanner.nextDouble();
-                    account.withdraw(withdrawAmount);
-                    break;
-                case 3:
-                    System.out.print("Enter amount to deposit: ");
-                    double depositAmount = scanner.nextDouble();
-                    account.deposit(depositAmount);
-                    break;
-                case 4:
-                    System.out.println("Thank you for using the ATM.");
-                    System.exit(0);
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
+    public SavingsAccount(String accountNumber, double balance) {
+        this.accountNumber = accountNumber;
+        this.balance = balance;
+    }
+
+    @Override
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    @Override
+    public double getBalance() {
+        return balance;
+    }
+
+    @Override
+    public void withdraw(double amount) {
+        if (amount > 0 && balance >= amount) {
+            balance -= amount;
+            System.out.println("Withdrawal successful. Current balance: " + balance);
+        } else {
+            System.out.println("Invalid amount or insufficient funds.");
         }
     }
 
-    public class atmAlgo {
-        public static void main(String[] args) {
-            // Create an account
-            Account account = new Account("123456", "1234", 1000.0);
+    @Override
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("Deposit successful. Current balance: " + balance);
+        } else {
+            System.out.println("Invalid amount.");
+        }
+    }
+}
 
-            // Create an ATM with the account
-            ATM atm = new ATM(account);
+// Bank class represents a bank containing multiple accounts
+class Bank {
+    private Map<String, BankAccount> accounts;
 
-            // Simulate ATM operations
-            Scanner scanner = new Scanner(System.in);
-            while (true) {
-                atm.displayMenu();
-                System.out.print("Enter your choice: ");
-                int choice = scanner.nextInt();
-                atm.performTransaction(choice, scanner);
-            }
+    public Bank() {
+        this.accounts = new HashMap<>();
+    }
+
+    public void addAccount(String accountNumber, BankAccount account) {
+        accounts.put(accountNumber, account);
+    }
+
+    public BankAccount getAccount(String accountNumber) {
+        return accounts.get(accountNumber);
+    }
+}
+
+// ATM class represents the ATM machine
+public class ATM {
+    private Bank bank;
+
+    public ATM(Bank bank) {
+        this.bank = bank;
+    }
+
+    public void displayMenu() {
+        System.out.println("ATM Menu:");
+        System.out.println("1. Check Balance");
+        System.out.println("2. Withdraw");
+        System.out.println("3. Deposit");
+        System.out.println("4. Exit");
+    }
+
+    public void performTransaction(int choice, Scanner scanner, String accountNumber) {
+        BankAccount account = bank.getAccount(accountNumber);
+        if (account == null) {
+            System.out.println("Invalid account number.");
+            return;
+        }
+
+        switch (choice) {
+            case 1:
+                checkBalance(account);
+                break;
+            case 2:
+                withdraw(scanner, account);
+                break;
+            case 3:
+                deposit(scanner, account);
+                break;
+            case 4:
+                exit();
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
         }
     }
 
+    private void checkBalance(BankAccount account) {
+        System.out.println("Current Balance: " + account.getBalance());
+    }
 
+    private void withdraw(Scanner scanner, BankAccount account) {
+        System.out.print("Enter amount to withdraw: ");
+        double withdrawAmount = scanner.nextDouble();
+        account.withdraw(withdrawAmount);
+    }
+
+    private void deposit(Scanner scanner, BankAccount account) {
+        System.out.print("Enter amount to deposit: ");
+        double depositAmount = scanner.nextDouble();
+        account.deposit(depositAmount);
+    }
+
+    private void exit() {
+        System.out.println("Thank you for using the ATM.");
+        System.exit(0);
+    }
+
+    public static void main(String[] args) {
+        // Create a bank
+        Bank bank = new Bank();
+
+        // Create accounts and add them to the bank
+        bank.addAccount("123456", new CurrentAccount("123456", 1000.0));
+        bank.addAccount("789012", new SavingsAccount("789012", 500.0));
+
+        // Create an ATM with the bank
+        ATM atm = new ATM(bank);
+
+        // Simulate ATM operations
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        while (true) {
+            atm.displayMenu();
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            atm.performTransaction(choice, scanner, accountNumber);
+        }
+    }
+}
